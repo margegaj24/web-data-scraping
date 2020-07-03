@@ -13,4 +13,4 @@ To get a better idea what I'm talking about test the script and see that
     1. 'Ovenvers gebakken brood||' is missing the full path to the products page
     2. 'Notenassortimenten||' is incorrectly written as it should be 'Notenassortiment||'
 
-Please don't forget to change the webdriver path at line 71
+Please don't forget to change the webdriver path at line 71 and mssql connection string
