@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import requests
 import time
+import pyodbc
 
 
 def configure_driver():
@@ -22,35 +23,6 @@ def save_image(url, filename):
 	print('File: ' + filename + ' saved')
 	file.write(response.content)
 	file.close()
-
-
-def get_first_level_links(driver):
-
-	links = []
-	driver.get('https://www.plus.nl/')
-	try:
-		WebDriverWait(driver, 10).until(lambda s: s.find_element_by_xpath('//button[text()="Producten"]').is_displayed())
-		driver.find_element_by_xpath('//button[text()="Producten"]').click()
-	except NoSuchElementException:
-		print('Element not found.')
-	except TimeoutException:
-		print('Timeout Exception.')
-
-	categories = driver.find_elements_by_xpath('//ul[@class="category-menu"]/li[@class="category-menu__item" and position() > 2]')
-	print('Found ' + str(len(categories)) + ' categories')
-	for category in categories:
-		category.click()
-		time.sleep(1)
-		try:
-			sub_categories = driver.find_elements_by_xpath('//ul[@class="category-menu"]/li[@class="category-menu__item category-menu__item--sub"]/a')
-			print('Found ' + str(len(sub_categories)) + 'sub categories')
-			for sub_category in sub_categories:
-				links.append(sub_category.get_attribute('href'))
-			driver.execute_script('Array.from(document.getElementsByTagName(\'a\')).filter(el => el.textContent == \'Alle producten\')[0].click()')
-			time.sleep(1)
-		except NoSuchElementException:
-			print('No first level subcategories found for ' + category.text)
-	return links
 
 
 def get_links(driver):
@@ -108,9 +80,9 @@ def get_products(driver, urls):
 				if productBrand != '':
 					productName = data.get_attribute('data-name').split(productBrand)[1].strip(' ')
 				else:
-					print(url)
+					# print(url)
 					productName = data.get_attribute('data-name')
-					print(productName)
+					# print(productName)
 				productPrice = data.get_attribute('data-price')
 				productId = data.get_attribute('data-id')
 				productCategory = data.get_attribute('data-category')
