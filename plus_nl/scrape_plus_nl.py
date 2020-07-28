@@ -25,6 +25,53 @@ def save_image(url, filename):
 	file.close()
 
 
+def product_exist(cursor, product):
+
+	cursor.execute('SELECT productId, productName, productPrice FROM PLus.dbo.Product WHERE productId = ' + product['id'])
+	row = cursor.fetchone()
+	if row is None:
+		return False
+	return row
+
+
+def insert_new_product(conn, cursor, product_data):
+
+	cursor.execute('INSERT INTO Plus.dbo.Product( productId, productName, brand, productPrice, quantity,  category, filename)'
+				   'VALUES ( ?, ?, ?, ?, ?, ?, ?)',
+				   product_data['id'], product_data['name'], product_data['brand'], product_data['price'],
+				   product_data['quantity'], product_data['category'], product_data['filename'])
+
+	conn.commit()
+
+# ownedBrand
+
+
+def insert_scraped_data(connection, cursor, products):
+
+	inserted_products = 0
+	updated_products = 0
+
+	for product in products:
+		save_image(product['url'], product['filename'])
+		# firstly we need to check if the product already exists
+		result = product_exist(cursor, product)
+		if result:
+			# if product exist in the database then we need to check if price changed
+			if float(result[2]) != float(product['productPrice']) and result[1] == product['productName'] and result[0] == product['productId']:
+				# this block of code updates the price value in case it has changed
+				print('Price has changed for ' + product['productName'])
+				print('Before: ' + str(result[1]) + '. After: ' + str(product['productPrice']))
+				cursor.execute('UPDATE Plus.dbo.Product SET productPrice = ' + str(product['price']) + ' WHERE productId = ' + str(product['productId']))
+				updated_products += 1
+		else:
+			# if product doesn't exist we insert it into the database
+			insert_new_product(connection, cursor, product)
+			inserted_products += 1
+
+	print('Inserted new products: ' + str(inserted_products))
+	print('Updated products: ' + str(updated_products))
+
+
 def get_links(driver):
 
 	links = []
@@ -104,7 +151,12 @@ def main():
 	urls = get_links(driver)
 	if urls:
 		products = get_products(driver, urls)
-		print(products[:10])
+		driver.close()
+		connection = pyodbc.connect('Driver={SQL Server};Server=Server Name;Database=Plus;Trusted_Connection=yes;')
+		cursor = connection.cursor()
+		print('Updating database...')
+		insert_scraped_data(connection, cursor, products)
+		print('Finished.')
 
 
 main()
