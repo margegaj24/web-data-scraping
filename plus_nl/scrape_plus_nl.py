@@ -27,7 +27,7 @@ def save_image(url, filename):
 
 def product_exist(cursor, product):
 
-	cursor.execute('SELECT productId, productName, productPrice FROM PLus.dbo.Product WHERE productId = ' + product['id'])
+	cursor.execute('SELECT productId, productName, productPrice FROM Plus.dbo.Product WHERE productId = ' + product['id'])
 	row = cursor.fetchone()
 	if row is None:
 		return False
