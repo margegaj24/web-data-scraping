@@ -27,7 +27,7 @@ def save_image(url, filename):
 
 def product_exist(cursor, product):
 
-	cursor.execute('SELECT productId, productName, productPrice FROM Plus.dbo.Product WHERE productId = ' + product['id'])
+	cursor.execute('SELECT productId, productName, productPrice FROM Product WHERE productId = ' + product['id'])
 	row = cursor.fetchone()
 	if row is None:
 		return False
@@ -36,7 +36,7 @@ def product_exist(cursor, product):
 
 def insert_new_product(conn, cursor, product_data):
 
-	cursor.execute('INSERT INTO Plus.dbo.Product( productId, productName, brand, productPrice, quantity,  category, filename)'
+	cursor.execute('INSERT INTO Product( productId, productName, brand, productPrice, quantity,  category, filename)'
 				   'VALUES ( ?, ?, ?, ?, ?, ?, ?)',
 				   product_data['id'], product_data['name'], product_data['brand'], product_data['price'],
 				   product_data['quantity'], product_data['category'], product_data['filename'])
@@ -57,11 +57,11 @@ def insert_scraped_data(connection, cursor, products):
 		result = product_exist(cursor, product)
 		if result:
 			# if product exist in the database then we need to check if price changed
-			if float(result[2]) != float(product['productPrice']) and result[1] == product['productName'] and result[0] == product['productId']:
+			if float(result[2]) != float(product['price']) and result[1] == product['name'] and result[0] == product['id']:
 				# this block of code updates the price value in case it has changed
-				print('Price has changed for ' + product['productName'])
-				print('Before: ' + str(result[1]) + '. After: ' + str(product['productPrice']))
-				cursor.execute('UPDATE Plus.dbo.Product SET productPrice = ' + str(product['price']) + ' WHERE productId = ' + str(product['productId']))
+				print('Price has changed for ' + product['name'])
+				print('Before: ' + str(result[1]) + '. After: ' + str(product['price']))
+				cursor.execute('UPDATE Product SET productPrice = ' + str(product['price']) + ' WHERE productId = ' + str(product['id']))
 				updated_products += 1
 		else:
 			# if product doesn't exist we insert it into the database
