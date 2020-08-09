@@ -7,22 +7,25 @@ import time
 import pyodbc
 
 
-def configure_driver():
+def configure_driver(headless=False):
 	# Add additional Options to the webdriver
-	firefox_options = Options()
-	# add the argument and make the browser Headless.
-	firefox_options.add_argument("--headless")
-	# Instantiate the Webdriver: Mention the executable path of the webdriver you have downloaded
-	driver = webdriver.Firefox(executable_path="/home/mario/Downloads/geckodriver")  # , options=firefox_options)
-	return driver
+	if headless:
+		firefox_options = Options()
+		# add the argument and make the browser Headless.
+		firefox_options.add_argument("--headless")
+		return webdriver.Firefox(executable_path="/home/mario/Downloads/geckodriver", options=firefox_options)
+	return webdriver.Firefox(executable_path="/home/mario/Downloads/geckodriver")
 
 
-def save_image(url, filename):
-	response = requests.get(url)
-	file = open('path' + filename, "wb")
-	print('File: ' + filename + ' saved')
-	file.write(response.content)
-	file.close()
+def save_image(url, filename, proxies):
+	response = requests.get(url, proxies=proxies)
+	if response.status_code == 200:
+		file = open(filename, "wb")
+		print('File: ' + filename + ' saved')
+		file.write(response.content)
+		file.close()
+	else:
+		print('Cannot get image at ' + url + ' Status code: ' + str(response.status_code))
 
 
 def product_exist(cursor, product):
@@ -42,8 +45,6 @@ def insert_new_product(conn, cursor, product_data):
 				   product_data['quantity'], product_data['category'], product_data['filename'])
 
 	conn.commit()
-
-# ownedBrand
 
 
 def insert_scraped_data(connection, cursor, products):
@@ -96,11 +97,12 @@ def get_links(driver):
 	return links
 
 
-def get_products(driver, urls):
+def get_products_and_save(driver, urls, connection, cursor):
 
 	products = []
-	for url in urls[:100]:
+	for url in urls[:1]:
 		driver.get(url)
+		print('Scraping ' + url)
 		# wait for the element to load
 		try:
 			WebDriverWait(driver, 20).until(lambda s: s.find_element_by_xpath('//li[@class="ish-productList-item"]').is_displayed())
@@ -113,7 +115,7 @@ def get_products(driver, urls):
 				elements = driver.find_elements_by_xpath('//li[@class="ish-productList-item"]')
 				nr_elements = len(elements)
 				driver.execute_script('window.scrollTo(0,' + str(y + 400) + ')')
-				time.sleep(5)
+				time.sleep(3)
 				# print(elements)
 				if cHeight > 0:
 					driver.execute_script('document.getElementById("showMoreProducts").click()')
@@ -121,6 +123,8 @@ def get_products(driver, urls):
 					time.sleep(5)
 					driver.execute_script('window.scrollTo(0,' + str(y + 400) + ')')
 				y += 400
+			driver.execute_script('window.scrollTo(0,' + str(y + 600) + ')')
+			time.sleep(5)
 			for element in elements:
 				data = element.find_element_by_xpath('//div[@class="product-tile__info"]')
 				productBrand = data.get_attribute('data-brand')
@@ -134,9 +138,11 @@ def get_products(driver, urls):
 				productId = data.get_attribute('data-id')
 				productCategory = data.get_attribute('data-category')
 				productQuantity = data.get_attribute('data-quantity')
-				productImageUrl = element.find_element_by_xpath('//img[@class="lazy"]').get_attribute('src')
+				productImageUrl = element.find_element_by_xpath('.//img[@class="lazy"]').get_attribute('src')
 				products.append({'name': productName, 'brand': productBrand, 'price': productPrice, 'id': productId, 'url': productImageUrl, 'category': productCategory,
 								 'quantity': productQuantity, 'filename': productId + '.png'})
+			print('Updating database...')
+			insert_scraped_data(connection, cursor, products)
 		except TimeoutException:
 			print('Timeout at ' + url)
 		except NoSuchElementException:
@@ -149,13 +155,12 @@ def main():
 
 	driver = configure_driver()
 	urls = get_links(driver)
+
 	if urls:
-		products = get_products(driver, urls)
-		driver.close()
 		connection = pyodbc.connect('Driver={SQL Server};Server=Server Name;Database=Plus;Trusted_Connection=yes;')
 		cursor = connection.cursor()
-		print('Updating database...')
-		insert_scraped_data(connection, cursor, products)
+		get_products_and_save(driver, urls, connection, cursor)
+		driver.close()
 		print('Finished.')
 
 
