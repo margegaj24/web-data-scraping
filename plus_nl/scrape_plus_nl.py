@@ -4,7 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import requests
 import time
-import pyodbc
+# import pyodbc
 
 
 def configure_driver(headless=False):
@@ -93,7 +93,7 @@ def get_links(driver):
 	for domain in domains:
 		if domain in links:
 			links.remove(domain)
-	print('Found ' + str(len(links)) + ' links')
+	print('Found ' + str(len(links)) + ' total links')
 	return links
 
 
@@ -151,17 +151,37 @@ def get_products_and_save(driver, urls, connection, cursor):
 	return products
 
 
+def compare(urls):
+
+	with open('products to scrape.txt', 'r+') as f:
+		print('Checking for new links')
+		lines = f.readlines()
+		lines = [line.rstrip(' 1\n') for line in lines]
+		new_links = [url for url in urls if url not in lines]
+		if len(new_links) > 0:
+			print('Found ' + str(len(new_links)) + ' new links to scrape.')
+			print('Adding new links...')
+			f.writelines([url + '\n' for url in new_links])
+			print('New links added.')
+		else:
+			print('No new links found.')
+
+
 def main():
 
 	driver = configure_driver()
 	urls = get_links(driver)
 
 	if urls:
-		connection = pyodbc.connect('Driver={SQL Server};Server=Server Name;Database=Plus;Trusted_Connection=yes;')
-		cursor = connection.cursor()
-		get_products_and_save(driver, urls, connection, cursor)
-		driver.close()
-		print('Finished.')
+		compare(urls)
+		with open('products to scrape.txt', 'r') as f:
+			lines = f.readlines()
+			urls_to_scrape = [line.rstrip(' 1\n') for line in lines if '1' in line]
+			connection = pyodbc.connect('Driver={SQL Server};Server=Server Name;Database=Plus;Trusted_Connection=yes;')
+			cursor = connection.cursor()
+			get_products_and_save(driver, urls_to_scrape, connection, cursor)
+			driver.close()
+			print('Finished.')
 
 
 main()

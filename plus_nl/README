@@ -1,0 +1,9 @@
+##################################
+This script scrapes products from plus.nl website
+##################################
+
+In the products to scrape.txt file are written the paths to the wanted products.
+
+Modify the "products to scrape.txt" file by adding or deleting " 1" at the end of each line.
+If you want scrape a url from the file just add " 1" in the end of line.
+Else if you don't want a url to not be scraped just delete the " 1" from the end of line

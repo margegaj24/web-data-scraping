@@ -1,3 +1,7 @@
+##################################
+This script scrapes products from aldi.nl website
+##################################
+
 In the products.txt file are written the paths to the wanted products.
 
 The syntax functions like the following:
