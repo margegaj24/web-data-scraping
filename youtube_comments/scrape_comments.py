@@ -13,6 +13,7 @@ def get_comments_from(driver, url):
 		previous_number_of_comments = 0
 		number_of_comments = len(driver.find_elements_by_xpath('//ytd-comment-renderer'))
 		y = 200
+		elements = []
 		while number_of_comments > previous_number_of_comments:
 			for i in range(4):
 				y += 500
@@ -41,10 +42,7 @@ def get_comments_from(driver, url):
 def scrape():
 
 	driver = webdriver.Firefox()
-	urls = ['https://youtu.be/tqoFTGaZfaI?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
-			'https://youtu.be/NMYFLMYzvB4?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
-			'https://youtu.be/t6iRYbREyc8?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
-			'https://youtu.be/DflOq3rUXp4?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG']
+	urls = ['https://youtu.be/2ymj94umXNo?list=PLJqg1rgDPzxgbN8-S8O4ND0QzT7vC9Qe2']
 
 	total_comments = []
 	for url in urls:
