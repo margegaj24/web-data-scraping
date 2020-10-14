@@ -14,18 +14,14 @@ def get_comments_from(driver, url):
 		number_of_comments = len(driver.find_elements_by_xpath('//ytd-comment-renderer'))
 		y = 200
 		while number_of_comments > previous_number_of_comments:
-			y += 500
-			driver.execute_script('window.scrollTo(0,' + str(y) + ')')
-			time.sleep(5)
-			y += 500
-			driver.execute_script('window.scrollTo(0,' + str(y) + ')')
-			time.sleep(5)
-			y += 500
-			driver.execute_script('window.scrollTo(0,' + str(y) + ')')
-			time.sleep(5)
-			y += 500
-			driver.execute_script('window.scrollTo(0,' + str(y) + ')')
-			time.sleep(5)
+			for i in range(4):
+				y += 500
+				driver.execute_script('window.scrollTo(0,' + str(y) + ')')
+				time.sleep(5)
+			for i in range(5):
+				y += 150
+				driver.execute_script('window.scrollTo(0,' + str(y) + ')')
+				time.sleep(5)
 			elements = driver.find_elements_by_xpath('//ytd-comment-renderer')
 			previous_number_of_comments = number_of_comments
 			number_of_comments = len(elements)
