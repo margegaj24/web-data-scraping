@@ -26,8 +26,11 @@ def get_comments_from(driver, url):
 			previous_number_of_comments = number_of_comments
 			number_of_comments = len(elements)
 
+		for element in elements:
+			comments.append(element.find_element_by_id('content-text').text + '\n')
+
 		print('Found ' + str(number_of_comments))
-		driver.quit()
+		return comments
 
 	except NoSuchElementException:
 		print('Element not found.')
@@ -35,4 +38,23 @@ def get_comments_from(driver, url):
 		print('Timeout Exception.')
 
 
-get_comments_from(webdriver.Firefox(), 'https://www.youtube.com/watch?v=ROeCwTHakqI&list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG&index=1')
+def scrape():
+
+	driver = webdriver.Firefox()
+	urls = ['https://youtu.be/tqoFTGaZfaI?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
+			'https://youtu.be/NMYFLMYzvB4?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
+			'https://youtu.be/t6iRYbREyc8?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG',
+			'https://youtu.be/DflOq3rUXp4?list=PLJqg1rgDPzxgDzQW40btWbzDWUAb6LPVG']
+
+	total_comments = []
+	for url in urls:
+		coments = get_comments_from(driver, url)
+		total_comments.extend(coments)
+	print('Total number of comments: ' + str(len(total_comments)))
+	driver.quit()
+
+	with open('comments.txt', 'a') as file:
+		file.writelines(total_comments)
+
+
+scrape()
