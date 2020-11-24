@@ -15,7 +15,7 @@ import math
 def configure_driver():
 	# Add additional Options to the webdriver
 	return webdriver.Firefox(executable_path=".\\geckodriver.exe")
-#return webdriver.Firefox(executable_path="./geckodriver")
+	# return webdriver.Firefox(executable_path="./geckodriver")
 
 
 def clean_images_directory():
@@ -74,14 +74,22 @@ def get_image(driver, option):
 		print('Screenshot taken for ' + option)
 		return True
 	except TimeoutException:
-		print('TimeoutException occurred on ' + option)
+		print('TimeoutException occurred on ' + option + '. Trying refresh...')
+		try:
+			driver.refresh()
+		except UnexpectedAlertPresentException:
+			return False
 		return False
 	except NoSuchElementException:
 		print('NoSuchElementException occurred on ' + option)
 		return False
-	except UnexpectedAlertPresentException:
-		print('UnexpectedAlertPresentException occurred on ' + option + '. Refreshing page...')
-		driver.refresh()
+	except UnexpectedAlertPresentException as e:
+		print(e.msg.split(': ')[1])
+		print('UnexpectedAlertPresentException occurred on ' + option + '. Trying refresh...')
+		try:
+			driver.refresh()
+		except UnexpectedAlertPresentException:
+			return False
 		return False
 	except WebDriverException:
 		print('WebDriverException occurred on ' + option + '. Refreshing page...')
